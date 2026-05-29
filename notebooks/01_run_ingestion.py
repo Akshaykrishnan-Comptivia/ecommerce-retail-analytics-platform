@@ -47,10 +47,8 @@ downloader.download_all()
 # COMMAND ----------
 
 if RUN_PUBLIC_DOWNLOADS:
-    from src.bronze.ingest_structured import (
-        ingest_amazon_reviews,
-        ingest_public_csv_sources,
-    )
+    from src.bronze.ingest_structured import ingest_public_csv_sources
+    from src.bronze.ingest_semi_structured import ingest_amazon_reviews
 
     bronze_public_tables = ingest_public_csv_sources(spark, config_path=config_path)
     amazon_bronze_table = ingest_amazon_reviews(spark, config_path=config_path)

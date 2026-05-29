@@ -184,22 +184,3 @@ def ingest_public_csv_sources(
     }
 
     return results
-
-
-def ingest_amazon_reviews(
-    spark: SparkSession,
-    config_path: str | None = None,
-    mode: str = "overwrite",
-) -> str:
-    config = _load_config(config_path)
-    amazon_cfg = config["bronze"]["public"]["amazon"]
-    source_path = (
-        f"{_landing_path(config, amazon_cfg['landing_subpath'])}/"
-        f"{amazon_cfg['file']}"
-    )
-    target = _qualified_table(config, amazon_cfg["table"])
-
-    df = spark.read.json(source_path)
-    df = df.withColumn("_ingested_at", current_timestamp())
-    df.write.format("delta").mode(mode).saveAsTable(target)
-    return target
