@@ -1,5 +1,6 @@
 # Databricks notebook source
 
+
 # COMMAND ----------
 
 # MAGIC %pip install -r ../requirements.txt
@@ -81,3 +82,24 @@ if RUN_PUBLIC_DOWNLOADS:
 
 print("\nIngestion download step complete!")
 print("Next step: Run Bronze ingestion notebooks/modules to load raw files into Delta tables.")
+
+# COMMAND ----------
+
+from datetime import datetime
+
+from src.ingestion.generate_synthetic import SyntheticDataGenerator
+
+gen = SyntheticDataGenerator(
+    spark,
+    config_path="../config/pipeline_config.yaml"
+)
+
+event = gen._make_event(
+    session_id="sess_1",
+    user_id="user_1",
+    event_type="page_view",
+    product_id="prod_1",
+    timestamp=datetime.now()
+)
+
+print(event)
