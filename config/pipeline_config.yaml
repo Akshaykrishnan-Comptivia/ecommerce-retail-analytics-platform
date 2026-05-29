@@ -29,15 +29,16 @@ bronze:
   schema: bronze
   tables:
     clickstream: bronze_clickstream_json
+
 synthetic:
-    clickstream:
+  clickstream:
     num_events: 1000000
     output_subpath: synthetic/clickstream
     event_types:
-          - page_view
-          - add_to_cart
-          - checkout
-          - purchase
+      - page_view
+      - add_to_cart
+      - checkout
+      - purchase
     num_users: 10000
     num_products: 500
     num_sessions: 5000
