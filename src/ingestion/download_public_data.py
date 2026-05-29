@@ -31,10 +31,6 @@ class PublicDataDownloader:
 
     def download_all(self):
 
-        print("=" * 50)
-        print("Starting Public Data Download")
-        print("=" * 50)
-
         for source_name, source_config in self.config["data_sources"].items():
 
             try:
@@ -50,8 +46,6 @@ class PublicDataDownloader:
             except Exception as e:
                 print(f"Failed: {source_name}")
                 print(str(e))
-
-        print("\nDownload Complete")
 
     def _download_source(
         self,
@@ -146,8 +140,9 @@ class PublicDataDownloader:
                 file
             )
 
+            folder_name = file[:-4]
             destination_path = (
-                f"{output_dir}/{file}"
+                f"{output_dir}/{folder_name}/{file}"
             )
 
             self._copy_file(
