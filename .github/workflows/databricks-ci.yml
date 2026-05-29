@@ -1,0 +1,12 @@
+name: Databricks CI
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Workflow triggered"
