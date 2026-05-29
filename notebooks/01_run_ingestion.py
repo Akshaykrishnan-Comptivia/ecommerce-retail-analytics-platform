@@ -65,19 +65,19 @@ if RUN_PUBLIC_DOWNLOADS:
 
 # COMMAND ----------
 
-landing_zone = "/Volumes/ecommerce_catalog/bronze/raw_data"
+landing_zone = "/Volumes/ecommerce_analytics_catalog/bronze/raw_data"
 print(f"Landing zone contents: {landing_zone}")
 try:
     display(dbutils.fs.ls(landing_zone))
 except Exception as e:
     print(f"Could not list volume contents: {e}")
-    print("Ensure you have READ VOLUME permission on ecommerce_catalog.bronze.raw_data.")
+    print("Ensure you have READ VOLUME permission on ecommerce_analytics_catalog.bronze.raw_data.")
 
 if RUN_PUBLIC_DOWNLOADS:
     print("\nPublic Bronze tables (sample):")
-    display(spark.table("ecommerce_catalog.bronze.bronze_orders_csv").limit(5))
-    display(spark.table("ecommerce_catalog.bronze.bronze_uci_retail_2009_2010").limit(5))
-    display(spark.table("ecommerce_catalog.bronze.bronze_amazon_reviews_tsv").limit(5))
+    display(spark.table("ecommerce_analytics_catalog.bronze.bronze_orders_csv").limit(5))
+    display(spark.table("ecommerce_analytics_catalog.bronze.bronze_uci_retail_2009_2010").limit(5))
+    display(spark.table("ecommerce_analytics_catalog.bronze.bronze_amazon_reviews_tsv").limit(5))
 
 print("\nIngestion download step complete!")
 print("Next step: Run Bronze ingestion notebooks/modules to load raw files into Delta tables.")
