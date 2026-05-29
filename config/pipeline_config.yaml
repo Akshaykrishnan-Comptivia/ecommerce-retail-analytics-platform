@@ -24,3 +24,23 @@ data_sources:
     domain: reviews
     category: All_Beauty
     max_records: 100000
+
+bronze:
+  schema: bronze
+  tables:
+    clickstream: bronze_clickstream_json
+
+synthetic:
+  clickstream:
+    num_events: 1000000
+    output_subpath: synthetic/clickstream
+    event_types:
+      - page_view
+      - add_to_cart
+      - checkout
+      - purchase
+    num_users: 10000
+    num_products: 500
+    num_sessions: 5000
+    events_per_session_min: 3
+    events_per_session_max: 12

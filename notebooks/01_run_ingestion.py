@@ -1,5 +1,6 @@
 # Databricks notebook source
 
+
 # COMMAND ----------
 
 # MAGIC %pip install -r ../requirements.txt
@@ -81,3 +82,91 @@ if RUN_PUBLIC_DOWNLOADS:
 
 print("\nIngestion download step complete!")
 print("Next step: Run Bronze ingestion notebooks/modules to load raw files into Delta tables.")
+
+# COMMAND ----------
+
+from src.ingestion.generate_synthetic import SyntheticDataGenerator
+
+gen = SyntheticDataGenerator(
+    spark,
+    config_path="../config/pipeline_config.yaml"
+)
+
+events = gen.generate_clickstream_events()
+
+print(len(events))
+print(events[0])
+
+# COMMAND ----------
+
+df = spark.createDataFrame(events)
+
+print(df.count())
+df.show(5, truncate=False)
+
+# COMMAND ----------
+
+clickstream_path = (
+    "/Volumes/ecommerce_analytics_catalog/bronze/raw_data/synthetic/clickstream"
+)
+
+df.write.mode("overwrite").json(clickstream_path)
+
+# COMMAND ----------
+
+display(dbutils.fs.ls(
+    "/Volumes/ecommerce_analytics_catalog/bronze/raw_data/synthetic/clickstream"
+))
+
+# COMMAND ----------
+
+spark.sql("SHOW VOLUMES IN ecommerce_analytics_catalog.bronze")
+
+# COMMAND ----------
+
+# MAGIC %sql SHOW GRANTS ON VOLUME ecommerce_analytics_catalog.bronze.raw_data
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT current_catalog();
+
+# COMMAND ----------
+
+display(dbutils.fs.ls("/Volumes/ecommerce_analytics_catalog/bronze/raw_data"))
+
+# COMMAND ----------
+
+display(
+    dbutils.fs.ls(
+        "/Volumes/ecommerce_analytics_catalog/bronze/raw_data/synthetic"
+    )
+)
+
+# COMMAND ----------
+
+display(
+    dbutils.fs.ls(
+        "/Volumes/ecommerce_analytics_catalog/bronze/raw_data/synthetic/clickstream"
+    )
+)
+
+# COMMAND ----------
+
+df_check = spark.read.json(
+    "/Volumes/ecommerce_analytics_catalog/bronze/raw_data/synthetic/clickstream"
+)
+
+print(df_check.count())
+df_check.show(5, truncate=False)
+
+# COMMAND ----------
+
+# MAGIC %sql SHOW TABLES IN ecommerce_analytics_catalog.bronze;
+
+# COMMAND ----------
+
+from src.bronze.ingest_semi_structured import ingest_clickstream
+
+table_name = ingest_clickstream(spark)
+print(table_name)
