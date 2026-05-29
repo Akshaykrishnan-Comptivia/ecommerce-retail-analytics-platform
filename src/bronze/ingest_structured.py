@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 import re
 import yaml
@@ -11,8 +10,8 @@ def _load_config(config_path: str | None) -> dict:
         with open(config_path, encoding="utf-8") as handle:
             return yaml.safe_load(handle)
     return {
-        "storage": {"raw_landing_zone": "/Volumes/ecommerce_catalog/bronze/raw_data"},
-        "catalog": "ecommerce_catalog",
+        "storage": {"raw_landing_zone": "/Volumes/ecommerce_analytics_catalog/bronze/raw_data"},
+        "catalog": "ecommerce_analytics_catalog",
         "bronze": {
             "schema": "bronze",
             "public": {
@@ -37,9 +36,14 @@ def _load_config(config_path: str | None) -> dict:
                         "year_2010_2011": "bronze_uci_retail_2010_2011",
                     },
                     "paths": {
-                        "year_2009_2010": "Year_2009_2010/Year_2009_2010.csv",
-                        "year_2010_2011": "Year_2010_2011/Year_2010_2011.csv",
+                        "year_2009_2010": "Year_2009_2010.csv",
+                        "year_2010_2011": "Year_2010_2011.csv",
                     },
+                },
+                "amazon": {
+                    "landing_subpath": "reviews/amazon_customer_reviews",
+                    "file": "All_Beauty.jsonl",
+                    "table": "bronze_amazon_reviews_tsv",
                 },
             },
         },
@@ -76,7 +80,6 @@ def _landing_path(config: dict, subpath: str) -> str:
 
 
 def _sanitize_column_names(df: DataFrame) -> DataFrame:
-    """Rename columns so Delta accepts them (e.g. UCI 'Customer ID' -> 'Customer_ID')."""
     for old_name in df.columns:
         new_name = re.sub(r"[,;{}()\n\t= ]+", "_", old_name).strip("_")
         if not new_name:
@@ -118,15 +121,11 @@ def ingest_olist_bronze(
     dbutils = _get_dbutils(spark)
     ingested: dict[str, str] = {}
 
-    print("Bronze Olist ingestion")
-    print(f"  Source base: {base_path}")
-
     for folder in dbutils.fs.ls(base_path):
         if not folder.isDir():
             continue
         folder_name = folder.name.rstrip("/")
         if folder_name not in table_map:
-            print(f"  -> SKIP (no table mapping): {folder_name}")
             continue
         csv_path = None
         for entry in dbutils.fs.ls(folder.path):
@@ -134,17 +133,15 @@ def ingest_olist_bronze(
                 csv_path = entry.path
                 break
         if not csv_path:
-            print(f"  -> SKIP (no CSV): {folder_name}")
             continue
 
         table_name = table_map[folder_name]
         target = _qualified_table(config, table_name)
         try:
-            rows = ingest_csv_to_bronze(spark, csv_path, target, mode=mode)
-            print(f"  -> {table_name}: {rows:,} rows")
+            ingest_csv_to_bronze(spark, csv_path, target, mode=mode)
             ingested[folder_name] = target
         except Exception as exc:
-            print(f"  -> FAILED {folder_name}: {exc}")
+            print(f"FAILED {folder_name}: {exc}")
 
     return ingested
 
@@ -161,9 +158,6 @@ def ingest_uci_bronze(
     path_map = uci_cfg["paths"]
 
     ingested: dict[str, str] = {}
-
-    print("Bronze UCI Online Retail II ingestion")
-    print(f"  Source base: {base_path}")
 
     for key, table_short in table_map.items():
         relative = path_map[key]
@@ -184,14 +178,28 @@ def ingest_public_csv_sources(
     config_path: str | None = None,
     mode: str = "overwrite",
 ) -> dict[str, dict[str, str]]:
-    print("=" * 60)
-    print("Bronze Public CSV Ingestion")
-    print("=" * 60)
-
     results = {
         "olist": ingest_olist_bronze(spark, config_path=config_path, mode=mode),
         "uci": ingest_uci_bronze(spark, config_path=config_path, mode=mode),
     }
 
-    print("Bronze public CSV ingestion complete.")
     return results
+
+
+def ingest_amazon_reviews(
+    spark: SparkSession,
+    config_path: str | None = None,
+    mode: str = "overwrite",
+) -> str:
+    config = _load_config(config_path)
+    amazon_cfg = config["bronze"]["public"]["amazon"]
+    source_path = (
+        f"{_landing_path(config, amazon_cfg['landing_subpath'])}/"
+        f"{amazon_cfg['file']}"
+    )
+    target = _qualified_table(config, amazon_cfg["table"])
+
+    df = spark.read.json(source_path)
+    df = df.withColumn("_ingested_at", current_timestamp())
+    df.write.format("delta").mode(mode).saveAsTable(target)
+    return target
