@@ -112,10 +112,6 @@ spark.sql("SHOW VOLUMES IN ecommerce_analytics_catalog.bronze")
 
 # COMMAND ----------
 
-# MAGIC %sql SHOW GRANTS ON VOLUME ecommerce_analytics_catalog.bronze.raw_data
-
-# COMMAND ----------
-
 # MAGIC %sql
 # MAGIC SELECT current_catalog();
 

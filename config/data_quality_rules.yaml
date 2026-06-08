@@ -1,0 +1,47 @@
+customers:
+
+  primary_key:
+    - customer_id
+
+  required_columns:
+    - customer_id
+    - customer_unique_id
+
+  unique_columns:
+    - customer_id
+
+products:
+
+  primary_key:
+    - product_id
+
+  required_columns:
+    - product_id
+
+  unique_columns:
+    - product_id
+
+  numeric_checks:
+
+    product_weight_g:
+      min: 1
+
+    product_length_cm:
+      min: 1
+
+    product_height_cm:
+      min: 1
+
+    product_width_cm:
+      min: 1
+
+sellers:
+
+  primary_key:
+    - seller_id
+
+  required_columns:
+    - seller_id
+
+  unique_columns:
+    - seller_id
