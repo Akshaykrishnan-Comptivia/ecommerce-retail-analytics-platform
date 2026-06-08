@@ -1,7 +1,5 @@
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import (
-    col,trim,upper,initcap,when,lit
-)
+from pyspark.sql.functions import (col,trim,upper,initcap,when,lit)
 
 
 def transform_customers(df: DataFrame) -> DataFrame:
