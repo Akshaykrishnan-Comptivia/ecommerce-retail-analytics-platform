@@ -1,47 +1,113 @@
+```yaml
+# ==========================================================
+# Customer Rules
+# ==========================================================
+
 customers:
 
-  primary_key:
-    - customer_id
+  - check:
+      function: is_not_null_and_not_empty
+      arguments:
+        column: customer_id
+      criticality: error
+      name: customer_id_not_null
 
-  required_columns:
-    - customer_id
-    - customer_unique_id
+  - check:
+      function: is_unique
+      arguments:
+        column: customer_id
+      criticality: error
+      name: customer_id_unique
 
-  unique_columns:
-    - customer_id
+  - check:
+      function: is_not_null_and_not_empty
+      arguments:
+        column: customer_unique_id
+      criticality: error
+      name: customer_unique_id_not_null
+
+  - check:
+      function: is_not_null_and_not_empty
+      arguments:
+        column: city
+      criticality: warn
+      name: city_not_null
+
+  - check:
+      function: is_not_null_and_not_empty
+      arguments:
+        column: state
+      criticality: warn
+      name: state_not_null
+
+
+# ==========================================================
+# Product Rules
+# ==========================================================
 
 products:
 
-  primary_key:
-    - product_id
+  - check:
+      function: is_not_null_and_not_empty
+      arguments:
+        column: product_id
+      criticality: error
+      name: product_id_not_null
 
-  required_columns:
-    - product_id
+  - check:
+      function: is_unique
+      arguments:
+        column: product_id
+      criticality: error
+      name: product_id_unique
 
-  unique_columns:
-    - product_id
+  - check:
+      function: is_in_range
+      arguments:
+        column: weight_kg
+        min_limit: 0.01
+      criticality: error
+      name: valid_weight
 
-  numeric_checks:
+  - check:
+      function: is_not_null_and_not_empty
+      arguments:
+        column: category
+      criticality: warn
+      name: category_not_null
 
-    product_weight_g:
-      min: 1
 
-    product_length_cm:
-      min: 1
-
-    product_height_cm:
-      min: 1
-
-    product_width_cm:
-      min: 1
+# ==========================================================
+# Seller Rules
+# ==========================================================
 
 sellers:
 
-  primary_key:
-    - seller_id
+  - check:
+      function: is_not_null_and_not_empty
+      arguments:
+        column: seller_id
+      criticality: error
+      name: seller_id_not_null
 
-  required_columns:
-    - seller_id
+  - check:
+      function: is_unique
+      arguments:
+        column: seller_id
+      criticality: error
+      name: seller_id_unique
 
-  unique_columns:
-    - seller_id
+  - check:
+      function: is_not_null_and_not_empty
+      arguments:
+        column: city
+      criticality: warn
+      name: city_not_null
+
+  - check:
+      function: is_not_null_and_not_empty
+      arguments:
+        column: state
+      criticality: warn
+      name: state_not_null
+```

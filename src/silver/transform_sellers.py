@@ -1,33 +1,74 @@
+from src.common.utils import standardize_column_names
+from pyspark.sql.functions import (col,trim,upper,initcap)
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import (col,trim,upper,initcap,when,lit)
 
 def transform_sellers(df: DataFrame) -> DataFrame:
 
+    df = standardize_column_names(df)
+
+
+    df = df.select("seller_id","seller_zip_code_prefix","seller_city","seller_state","_ingested_at")
+
+
     df = (
+
         df
-        .dropDuplicates(["seller_id"])
-        .withColumn(
+
+        .withColumnRenamed(
+
+            "seller_zip_code_prefix",
+
+            "zip_code"
+
+        )
+
+        .withColumnRenamed(
+
             "seller_city",
-            initcap(trim(col("seller_city")))
+
+            "city"
+
         )
-        .withColumn(
+
+        .withColumnRenamed(
+
             "seller_state",
-            upper(trim(col("seller_state")))
+
+            "state"
+
         )
+
+    )
+
+
+    df = (
+
+        df
+
         .withColumn(
-            "is_valid",
-            when(
-                col("seller_id").isNull(),
-                False
-            ).otherwise(True)
+
+            "city",
+
+            initcap(trim(col("city")))
+
         )
+
         .withColumn(
-            "dq_reason",
-            when(
-                col("seller_id").isNull(),
-                "seller_id is null"
-            )
+
+            "state",
+
+            upper(trim(col("state")))
+
         )
+
+        .withColumn(
+
+            "zip_code",
+
+            trim(col("zip_code"))
+
+        )
+
     )
 
     return df

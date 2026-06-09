@@ -1,42 +1,69 @@
+from src.common.utils import standardize_column_names
+from pyspark.sql.functions import (col,trim,initcap)
+from pyspark.sql.types import (IntegerType,DecimalType)
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import (col,trim,when,lit)
 
-def transform_products(df: DataFrame) -> DataFrame:
+def transform_products(df:DataFrame) -> DataFrame:
 
-    df = (df.dropDuplicates(["product_id"])
-          .withColumn("product_category_name",trim(col("product_category_name")))
-        .withColumn(
-            "is_valid",
-            when(col("product_id").isNull(), False)
-            .when(col("product_weight_g") <= 0, False)
-            .when(col("product_length_cm") <= 0, False)
-            .when(col("product_height_cm") <= 0, False)
-            .when(col("product_width_cm") <= 0, False)
-            .otherwise(True)
+    df = standardize_column_names(df)
+
+
+
+    df = df.select("product_id","product_category_name","product_name_lenght","product_photos_qty","product_weight_g","_ingested_at")
+
+
+    df = (df
+
+        .withColumnRenamed(
+            "product_category_name",
+            "category"
         )
-        .withColumn(
-            "dq_reason",
-            when(
-                col("product_id").isNull(),
-                "product_id is null"
-            )
-            .when(
-                col("product_weight_g") <= 0,
-                "invalid weight"
-            )
-            .when(
-                col("product_length_cm") <= 0,
-                "invalid length"
-            )
-            .when(
-                col("product_height_cm") <= 0,
-                "invalid height"
-            )
-            .when(
-                col("product_width_cm") <= 0,
-                "invalid width"
-            )
+
+        .withColumnRenamed(
+            "product_name_lenght",
+            "name_length"
         )
+
+        .withColumnRenamed(
+            "product_photos_qty",
+            "photos_count"
+        )
+
     )
+
+
+    df = (
+
+        df
+
+        .withColumn(
+            "name_length",
+            col("name_length").cast(IntegerType())
+        )
+
+        .withColumn(
+            "photos_count",
+            col("photos_count").cast(IntegerType())
+        )
+
+        .withColumn(
+            "product_weight_g",
+            col("product_weight_g").cast(
+                DecimalType(10,2)
+            )
+        )
+
+    )
+
+    df = df.withColumn(
+
+        "weight_kg",
+
+        col("product_weight_g")/1000
+
+    )
+
+
+    df = df.select("product_id","category","name_length","photos_count","weight_kg","_ingested_at")
 
     return df
